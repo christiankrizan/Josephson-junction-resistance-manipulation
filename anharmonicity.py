@@ -1,8 +1,24 @@
 #############################################################################################
-#   Creative Commons Attribution Non Commercial Share Alike 4.0 International
-#   CC-BY-NC-SA-4.0
-#   https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode
-#   https://github.com/christiankrizan/Quantum-computing-using-IMP-Presto/blob/master/LICENSE
+# Copyright (c) 2025 Christian Križan. All rights reserved.
+# Owner retains all applicable rights wherever possible without prior infringement.
+#
+# Chalmers University of Technology granted usage rights
+# for academic non-profit purposes as part of the
+# default rules set by the university.
+#
+# This file is part of the "Josephson junction resistance manipulation"
+# project, available at
+# https://github.com/christiankrizan/Josephson-junction-resistance-manipulation/
+# 
+# Licensed under the terms described in the LICENSE file, at:
+# https://github.com/christiankrizan/Josephson-junction-resistance-manipulation/blob/master/LICENSE.
+#
+# Provided strictly for academic, non-commercial use.
+# Contact the author for negotiation of profit-generating use.
+# 
+# Provided "AS IS" without warranty.
+# The author assumes no liability for damage, loss, or misuse
+# resulting from this code.
 #############################################################################################
 
 from random import randint
