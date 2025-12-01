@@ -55,16 +55,16 @@ def expo_calc(expr: str) -> str:
     result_val = prefactor * value
     result_err = abs(prefactor) * err_val
 
-    # --- Formatting ---
-    # round error to 1–2 significant digits
+    # Formatting.
+    # Round the error to 1–2 significant digits.
     err_exp = math.floor(math.log10(result_err)) if result_err > 0 else 0
     # Use 1 digit for error if first digit >= 3, otherwise 2
     err_digits = 1 if int(str(int(result_err / 10**err_exp))[0]) >= 3 else 2
     rounded_err = round(result_err, -err_exp + (err_digits - 1))
     rounded_val = round(result_val, -err_exp + (err_digits - 1))
 
-    # Now express in the $(val)(err)$ format
-    # Need to align digits: error refers to last digits of value
+    # Now express in the $(val)(err)$ format.
+    # Need to align digits: error refers to last digits of value.
     fmt_str = f"{{:.{-err_exp + (err_digits - 1)}f}}"
     val_str = fmt_str.format(rounded_val)
     err_str = str(int(rounded_err * 10**(-err_exp + (err_digits - 1))))
