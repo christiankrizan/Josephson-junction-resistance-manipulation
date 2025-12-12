@@ -864,7 +864,7 @@ def plot_josephson_junction_resistance_manipulation_and_relaxation(
         #plt.figure(figsize=(10, 5), facecolor=get_colourise(-2))
     else:
         # Used for methods example demonstration.
-        ##fig, ax = plt.subplots(figsize=(13.58, 9.78)) #### (b) ####
+        fig, ax = plt.subplots(figsize=(13.58, 9.78)) #### (b) ####
         ##fig, ax = plt.subplots(figsize=(14.045, 9.75)) #### (d) ####
         
         # Used for the stepped_active_manipulation data (sub)plots.
@@ -1050,13 +1050,13 @@ def plot_josephson_junction_resistance_manipulation_and_relaxation(
                         plt.plot(times, resistances, marker='o', linestyle='-', label=file_label, color=colours(jj)) ## TODO!!
                 else:
                     #dot_color = "#C4EE1C" ## TODO!
-                    dot_color = "#1CEE70" ## TODO!
-                    #dot_color = "#EE1C1C" ## TODO!
+                    #dot_color = "#1CEE70" ## TODO!
+                    dot_color = "#EE1C1C" ## TODO!
                     if normalise_resistances == 3:
                         ##ax.plot(times, resistances_ohm, marker='o', linestyle='-', label=file_label + " [Ω]", color=dot_color)
                         print("TODO: dividing the time axis by 3600 to put it in hours instead of seconds.")
-                        #ax.plot(times/3600, resistances_ohm, marker='o', linestyle='-', label="Low-dose 1", color=dot_color) ##label="200x200 nm low_dose-oxide", color=dot_color)
-                        ax.plot(times/3600, resistances_ohm, marker='o', linestyle='-', label="Medium-dose 1", color=dot_color) ## label="350x350 nm medium_dose-oxide", color=dot_color)
+                        ax.plot(times/3600, resistances_ohm, marker='o', linestyle='-', label="Low-dose 1", color=dot_color) ##label="200x200 nm low_dose-oxide", color=dot_color)
+                        #ax.plot(times/3600, resistances_ohm, marker='o', linestyle='-', label="Medium-dose 1", color=dot_color) ## label="350x350 nm medium_dose-oxide", color=dot_color)
                         #ax.plot(times/3600, resistances_ohm, marker='o', linestyle='-', label="High-dose 1", color=dot_color) ## label="318x318 nm high_dose-oxide", color=dot_color)
                         
                         if 'ax2' not in locals():
@@ -1066,12 +1066,12 @@ def plot_josephson_junction_resistance_manipulation_and_relaxation(
                             # Set ylim limits!
                             
                             # Used for the stepped active manipulation examples.
-                            bottom_percent = -5
-                            top_percent = 280
+                            ##bottom_percent = -5
+                            ##top_percent = 280
                             
                             # Used for the (b) illustration example.
-                            ##bottom_percent = -0.9
-                            ##top_percent = 6.1
+                            bottom_percent = -0.9
+                            top_percent = 6.1
                             # Used for the (d) illustration example.
                             ##bottom_percent = -5
                             ##top_percent = 58
@@ -3268,7 +3268,7 @@ def plot_active_vs_total_resistance_gain(
     take_relaxation_data_at_this_time_s,
     filename_tags = [],
     outlier_threshold_in_std_devs = 2.0,
-    consider_outliers = True,
+    highlight_outliers = False,
     plot_ideal_curve = False,
     colourise = False,
     savepath = '',
@@ -3291,7 +3291,10 @@ def plot_active_vs_total_resistance_gain(
         
         Datapoints that fall outside of outlier_threshold_in_std_devs are
         considered outliers, this limit was set to 2 standard deviations
-        from the mean.
+        from the mean. The argument highlight_outliers sets whether
+        to plot a second trace that fits to data that is not an outlier.
+        For the paper, all data was included. This highlight_outliers
+        is just for in-situ analysis of the experiments themselves.
     '''
     
     # Counter to keep track of colourised patterns.
@@ -3418,7 +3421,7 @@ def plot_active_vs_total_resistance_gain(
             else:
                 plt.plot(np.insert(sorted_active, 0, 0), np.insert(original_fitted_curve, 0, optimal_m), color="#222222", label=f"Linear fit: {optimal_k:.2f} · x + {optimal_m:.2f} [%]\nSlope error: ±{err_k:.2f}\nOffset error: ±{err_m:.2f}")
         
-    if consider_outliers:
+    if highlight_outliers:
         # Do the same with the filtered data.
         ## Remember to extend to 0.
         filtered_fitted_curve, filtered_k, filtered_m, filtered_err_k, filtered_err_m = linear_fitter(active_filtered, total_filtered)
@@ -3432,23 +3435,16 @@ def plot_active_vs_total_resistance_gain(
     # Plot an ideal curve?
     if plot:
         if plot_ideal_curve:
-            if consider_outliers:
+            if highlight_outliers:
                 plt.plot(np.insert(sorted_active, 0, 0), 1.00 * np.insert(sorted_active, 0, filtered_m) + filtered_m, color="#000000", label=f"Ideal trend: 1.0000 · x + {optimal_m:.2f} [%]")
             else:
                 plt.plot(np.insert(sorted_active, 0, 0), 1.00 * np.insert(sorted_active, 0, optimal_m) + optimal_m, color="#000000", label=f"Ideal trend: 1.0000 · x + {optimal_m:.2f} [%]")
         
-    '''
-    ## Now, let's redo that with the outlier-filtered data and the original data.
-    plt.plot(sorted_active, slope * sorted_active + intercept, color="#34D2D6", label=f"Fit with outliers: y = {slope:.2f}x + {intercept:.2f}\n±{std_err:.2f}")
-    
-    slope_filtered, intercept_filtered, r_value_filtered, p_value_filtered, std_err_filtered = linregress(active_filtered, total_filtered)
-    plt.plot(active_filtered, slope_filtered * active_filtered + intercept_filtered, color="#34D2D6", label=f"Fit sans outliers: y = {slope_filtered:.2f}x + {intercept_filtered:.2f}\n{std_err_filtered:.2f}")
-    '''
     
     # Insert datapoints!
     if plot:
         if (not colourise):
-            if consider_outliers:
+            if highlight_outliers:
                 plt.scatter(sorted_active, sorted_total, color="#8934D6", label=str(outlier_threshold_in_std_devs)+"σ outliers")
                 ## This is a weird way to do this plotting, but it ensures that
                 ## only the outliers are highlighted in the plot legend.
@@ -3457,7 +3453,7 @@ def plot_active_vs_total_resistance_gain(
             else:
                 plt.scatter(sorted_active, sorted_total, color=dot_colour, label=legend_string)
         else:
-            if consider_outliers:
+            if highlight_outliers:
                 plt.scatter(sorted_active, sorted_total, color=get_colourise(3), label=str(outlier_threshold_in_std_devs)+"σ outliers")
                 ## This is a weird way to do this plotting, but it ensures that
                 ## only the outliers are highlighted in the plot legend.
@@ -3720,18 +3716,21 @@ def plot_quality_factor_vs_manipulation(
     ch3_manipulated_second_percent = [3.912, 0.145, 1.765, 2.207, 11.123, 9.152, 4.108, 4.010]
     ch5_manipulated_second_percent = [0, 0, 1.315, 0, 0.545, 0, 0.517, 0]
     
+    # Ch3 round 1:
+    ## No manipulation!
+    
     # Ch5 round 1:
     # Q1: 12-02-2025_17-01_JJTest100W3_Ch5_Q1_0p70V_MANIPULATE_7855p085_KriK.csv
     # Q2: 14-02-2025_14-03_JJTest100W3_Ch5_Q2_0p85V_MANIPULATE_AND_CREEP_9754p432_KriK.csv
     # Q3: 14-02-2025_17-26_JJTest100W3_Ch5_Q3_0p85V_MANIPULATE_AND_CREEP_8494p915_KriK.csv
     # Q4: 13-02-2025_17-32_JJTest100W3_Ch5_Q4_0p85V_MANIPULATE_AND_CREEP_KriK.csv
     # Q5: 16-02-2025_17-53_JJTest100W3_Ch5_Q5_0p85V_MANIPULATE_AND_CREEP_6692p460_KriK.csv
-    # Q6: 17-02-2025_10-55_JJTest100W3_Ch5_Q8_0p85V_MANIPULATE_AND_CREEP_6836p235_KriK.csv
+    # Q6: 17-02-2025_08-52_JJTest100W3_Ch5_Q6_0p85V_MANIPULATE_AND_CREEP_6203p625_KriK.csv
     # Q7: 17-02-2025_11-40_JJTest100W3_Ch5_Q7_0p85V_MANIPULATE_AND_CREEP_7341p045_KriK.csv
     # Q8: 17-02-2025_10-55_JJTest100W3_Ch5_Q8_0p85V_MANIPULATE_AND_CREEP_6836p235_KriK.csv
     
     # Ch5 round 2:
-    # Q1: 2025-04-02_17-01_Ch5_Q1_ROUND2_0p85V_MANIPULATE_KriK.csv
+    # Q1: -
     # Q2: -
     # Q3: 2025-04-02_18-17_Ch5_Q3_ROUND2_0p85V_MANIPULATE_KriK.csv
     # Q4: -
@@ -3801,14 +3800,7 @@ def plot_quality_factor_vs_manipulation(
     ax1.tick_params(axis='both', labelsize=26)
     
     # Set up additional plot stuff.
-    ## There is one datapoint that underwent negative active maipulation,
-    ## that is, I knowingly performed the resistance manipulation such that
-    ## it had a lower resistance by the time I stopped the manipulation.
-    ## My examiner said that we should not put this datapoint in the upcoming
-    ## paper, because we do not delve into the mechanism behind the negative
-    ## resistance manipulation, that we do not understand what is going on,
-    ## and putting this data in the paper is asking for trouble.
-    #ax1.set_xlim(xmin=-13.0, xmax=13.0)
+    ##ax1.set_xlim(xmin=-13.0, xmax=13.0)
     
     ax1.set_xlim(xmin=-0.5, xmax=13.0)
     ax1.set_ylim(ymin=0)
@@ -3973,7 +3965,7 @@ def perform_stepped_manipulation_analysis(
     ## Let's instantiate the figure already at this point.
     if len( filepath_list ) == 2:
         fig1, axs1 = plt.subplots(1, 2, figsize=(31.1, 13))
-        fig2, axs2 = plt.subplots(2, 2, figsize=(31.1, 13))
+        '''fig2, axs2 = plt.subplots(2, 2, figsize=(31.1, 13))''' # Removed, useful for research but co-authors don't want this in the paper.
         fig3, axs3 = plt.subplots(1, 2, figsize=(25.4, 13))
     else:
         raise NotImplementedError("Todo!")
@@ -4037,7 +4029,8 @@ def perform_stepped_manipulation_analysis(
         ## the statement here is correct as-is.
         
         # Set new y axis limits?
-        print("Weird Y limits found for MPW005A, see code.")
+        ##if verbose:
+        ##    print("Debug: weird Y limits found for MPW005A, see code.")
         if kk < 1:
             if np.max(resistance_added_percent) > y_lim_top:
                 y_lim_top = np.max(resistance_added_percent)*1.1
@@ -4164,6 +4157,7 @@ def perform_stepped_manipulation_analysis(
         axs1[0].set_xscale('log')
         axs1[0].tick_params(axis='both', labelsize=26)
         
+        '''
         ## Subplot 2:
         
         # Plot!
@@ -4176,7 +4170,7 @@ def perform_stepped_manipulation_analysis(
         # Axis labels.
         axs2[0,kk].set_xlabel("Duration [min]", fontsize=33)
         axs2[0,kk].set_ylabel("Resistance increase [%]", fontsize=33)
-        axs2[0,kk].tick_params(axis='both', labelsize=26)
+        axs2[0,kk].tick_params(axis='both', labelsize=26)'''
         
         ## Subplot 3:
         
@@ -4201,7 +4195,7 @@ def perform_stepped_manipulation_analysis(
         else:
             time_axis = uniform_time
         
-        # Plot!
+        '''# Plot!
         axs2[1,kk].plot(time_axis, dR_dt,   label=r"$\frac{dR}{dt}$",     color='tab:red')
         axs2[1,kk].plot(time_axis, d2R_dt2, label=r"$\frac{d^2R}{dt^2}$", color='tab:orange')
         axs2[1,kk].plot(time_axis, d3R_dt3, label=r"$\frac{d^3R}{dt^3}$", color='tab:purple')
@@ -4237,6 +4231,7 @@ def perform_stepped_manipulation_analysis(
             label = "Stop manipulation" if "stop" not in plotted_labels else None
             axs2[1,kk].axvline(ts, color='magenta', linestyle='--', linewidth=1.5, label=label)
             plotted_labels.add("stop")
+        '''
         
         ## Fig 3 i.e. subplot 5
         # Plot!
@@ -4289,7 +4284,8 @@ def perform_stepped_manipulation_analysis(
         plt.figure(1)
         plt.savefig(savepath, dpi=164, bbox_inches='tight')
         
-        plt.figure(3)
+        #plt.figure(3)
+        plt.figure(2)
         plt.savefig(savepath.replace(".png","_excerpt3.png"), dpi=164, bbox_inches='tight')
     
     # Plot shits!
@@ -4479,39 +4475,6 @@ def compare_aging_vs_junction_sizes(
     ## Time data!
     
     # Thin 1!
-    '''aging_vs_time_100nm_daily_25nA = transform([
-        (1, 1.0),
-        (2, 1.0629310344827585),
-        (3, 1.118103448275862),
-        (4, 1.1534482758620688),
-        (5, 1.171551724137931),
-        (6, 1.2293103448275862),
-        (7, 1.2551724137931033),
-        (8, 1.2698275862068964),
-        (9, 1.285344827586207),
-        (10, 1.3060344827586206),
-        (11, 1.314655172413793),
-        (12, 1.3275862068965516),
-        (13, 1.3370689655172412),
-        (14, 1.3474137931034482),
-        (15, 1.3568965517241378)
-    ])
-    aging_vs_time_100nm_weekly_25nA = transform([
-        (1, 1.0),
-        (9, 1.2672413793103448),
-        (15, 1.3206896551724137)
-    ])
-    aging_vs_time_100nm_biweekly_25nA = transform([
-        (1, 1.0),
-        (4, 1.139655172413793),
-        (9, 1.2784482758620688),
-        (12, 1.311206896551724),
-        (15, 1.3353448275862068)
-    ])
-    aging_vs_time_100nm_bimonthly_25nA = transform([
-        (1, 1.0),
-        (15, 1.3681034482758618)
-    ])'''
     reference_day_thin1 = "2024_05_14__15_40_00" # Estimate from fabrication logs.
     aging_vs_time_100nm_daily_25nA_res = [ #C12R0
         ("2024_05_16__18_53_31", 33190.88588599869),
@@ -5095,9 +5058,9 @@ def increase_in_percent_per_second_exponential(
 def plot_dielectric_breakdown_data(
     folder_path,
     number_of_junction_sizes_probed,
+    electrode_width_list,
     plot_broken_data = False,
     resistance_limit_for_shorted_junction_ohm = 260,
-    area_list = [],
     max_voltage_for_defining_R_in_mV = 50,
     savepath = ''
     ):
@@ -5115,6 +5078,12 @@ def plot_dielectric_breakdown_data(
             Path to save the plot. If just an empty string '',
             then the plot will not be saved.
     '''
+    
+    # Input sanitation.
+    if not isinstance(electrode_width_list, (list, np.ndarray)):
+        raise TypeError(
+            f"Error! 'electrode_width_list' must be a list or numpy array, got {type(electrode_width_list).__name__}"
+        )
     
     # Set up a colour table given how many junction sizes there were.
     # Define start and end hex colours
@@ -5198,15 +5167,15 @@ def plot_dielectric_breakdown_data(
                 ## Insert stuffs into plot!
                 
                 # What label should be used?
-                if (area_list == []):
+                if (electrode_width_list == []):
                     ##label_tag = filename
                     raise ValueError("Halted! The user has to define the junction areas. A simple side-length will suffice, like \"600 nm\".")
-                elif (number_of_traces_plotted >= len(area_list)):
+                elif (number_of_traces_plotted >= len(electrode_width_list)):
                     # Then, stop plotting.
                     label_tag = None
                 else:
                     # In this case, use the user-provided legend list.
-                    label_tag = area_list[number_of_traces_plotted]
+                    label_tag = electrode_width_list[number_of_traces_plotted]
                 
                 # Plot shits.
                 ax1.plot(current_uA, voltage_mV, label=label_tag, color = colours[colour_counter], alpha=0.6)
@@ -5228,7 +5197,7 @@ def plot_dielectric_breakdown_data(
                 # 2. (R·A) goes on the X axis.
                 ## TODO: handle cases when the user has not provided areas.
                 ## Convert sidelength to area.
-                side_length_m = int(area_list[colour_counter].replace(' nm', '')) * 1e-9
+                side_length_m = int(electrode_width_list[colour_counter].replace(' nm', '')) * 1e-9
                 area_m2 = side_length_m ** 2
                 resistivity_length = trace_resistance * area_m2
                 
@@ -5292,7 +5261,7 @@ def plot_dielectric_breakdown_data(
             fmt='o',
             capsize=5,
             markersize=8,
-            label=area_list[item]
+            label=electrode_width_list[item]
         )
     
     ax2.grid()
@@ -5636,8 +5605,6 @@ def plot_ln2_data(
     return times_min, resistances, errors, temperatures, res_initial, resistances_G0T0, temperatures_G0T0
 
 def map_pearson_coefficient_in_active_manipulation(
-    alpha_list_ohm_per_second,
-    beta_list_ohm_per_second_squared,
     name_of_sample = 'Hatmatilka',
     savepath = ''
     ):
