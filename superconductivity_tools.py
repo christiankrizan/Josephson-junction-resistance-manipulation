@@ -864,11 +864,11 @@ def plot_josephson_junction_resistance_manipulation_and_relaxation(
         #plt.figure(figsize=(10, 5), facecolor=get_colourise(-2))
     else:
         # Used for methods example demonstration.
-        fig, ax = plt.subplots(figsize=(13.58, 9.78)) #### (b) ####
+        ##fig, ax = plt.subplots(figsize=(13.58, 9.78)) #### (b) ####
         ##fig, ax = plt.subplots(figsize=(14.045, 9.75)) #### (d) ####
         
         # Used for the stepped_active_manipulation data (sub)plots.
-        fig, ax = plt.subplots(figsize=(12.65, 13))
+        fig, ax = plt.subplots(figsize=(12.34, 13))
     
     # Create list that will keep track of where the "time = 0" points are
     # in the files.
@@ -1049,9 +1049,9 @@ def plot_josephson_junction_resistance_manipulation_and_relaxation(
                     except TypeError:
                         plt.plot(times, resistances, marker='o', linestyle='-', label=file_label, color=colours(jj)) ## TODO!!
                 else:
-                    #dot_color = "#C4EE1C" ## TODO!
+                    dot_color = "#C4EE1C" ## TODO!
                     #dot_color = "#1CEE70" ## TODO!
-                    dot_color = "#EE1C1C" ## TODO!
+                    #dot_color = "#EE1C1C" ## TODO!
                     if normalise_resistances == 3:
                         ##ax.plot(times, resistances_ohm, marker='o', linestyle='-', label=file_label + " [Ω]", color=dot_color)
                         print("TODO: dividing the time axis by 3600 to put it in hours instead of seconds.")
@@ -1066,12 +1066,12 @@ def plot_josephson_junction_resistance_manipulation_and_relaxation(
                             # Set ylim limits!
                             
                             # Used for the stepped active manipulation examples.
-                            ##bottom_percent = -5
-                            ##top_percent = 280
+                            bottom_percent = -5
+                            top_percent = 280
                             
                             # Used for the (b) illustration example.
-                            bottom_percent = -0.9
-                            top_percent = 6.1
+                            ##bottom_percent = -0.9
+                            ##top_percent = 6.1
                             # Used for the (d) illustration example.
                             ##bottom_percent = -5
                             ##top_percent = 58
@@ -2433,7 +2433,12 @@ def analyse_fitted_polynomial_factors(
     
     for i in range(num_traces):
         if y_values[i]:
-            label_string = f'Parameter {fit_label_list[i]}'
+            if fit_label_list[i] == 'α':
+                label_string = f'{fit_label_list[i]} [s⁻¹]'
+            elif fit_label_list[i] == 'β':
+                label_string = f'{fit_label_list[i]} [s⁻²]'
+            else:
+                label_string = f'Parameter {fit_label_list[i]}'
             if colourise:
                 plt.errorbar(voltage_list_mV, y_values[i], yerr=y_errors[i], marker='o', linestyle='-', capsize=3, label=label_string, color=get_colourise(i))
             else:
@@ -2679,9 +2684,9 @@ def analyse_multiple_sets_of_fitted_polynomial_factors(
         ax.set_xlabel("Voltage [mV]", fontsize=33)
         if fitter == 'second_order':
             if ll == 0:
-                ax.set_ylabel("Parameter α", fontsize=33)
+                ax.set_ylabel("α [s⁻¹]", fontsize=33)
             else:
-                ax.set_ylabel("Parameter β", fontsize=33)
+                ax.set_ylabel("β [s⁻²]", fontsize=33)
         else:
             print("WARNING: Unable to select appropriate Y-axis labels at this time.")
             ax.set_ylabel("Parameter value", fontsize=33)
@@ -3052,12 +3057,11 @@ def plot_trend_active_vs_total_resistance_gain(
     take_relaxation_data_at_this_time_interval_s,
     filename_tags = [],
     outlier_threshold_in_std_devs = 2.0,
-    consider_outliers = True,
-    plot_ideal_curve = False,
     colourise = False,
     savepath = '',
     plot = True,
     enforce_n = -1,
+    plot_RMS_deviation = False,
     ):
     ''' For an interval of times to be observed, get the slope and offset
         data for the linear fits of the active-vs-total-manipulation
@@ -3065,6 +3069,10 @@ def plot_trend_active_vs_total_resistance_gain(
         
         enforce_n:  Set the minimum number of samples taken at some datapoint
                     to quality as fittable.
+        
+        plot_RMS_deviation: during experimental development, it is useful to
+                            know the fit deviation. This argument shows this
+                            deviation.
     '''
     list_of_slopes              = []
     list_of_slopes_err          = []
@@ -3123,8 +3131,8 @@ def plot_trend_active_vs_total_resistance_gain(
             take_relaxation_data_at_this_time_s = curr_investigated_time,
             filename_tags = filename_tags,
             outlier_threshold_in_std_devs = outlier_threshold_in_std_devs,
-            consider_outliers = consider_outliers,
-            plot_ideal_curve = plot_ideal_curve,
+            highlight_outliers = False,
+            plot_ideal_curve = False,
             colourise = colourise,
             savepath = '',
             plot = False,
@@ -3171,11 +3179,15 @@ def plot_trend_active_vs_total_resistance_gain(
             time[i]  = None
     
     # Plotting
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(25.31, 10), sharex=True)
+    if plot_RMS_deviation:
+        fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(25.31, 10), sharex=True)
+    else:
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(25.31, 10), sharex=True)
 
     # Top plot: slope
-    ax1.errorbar(time/3600, k, yerr=k_err, fmt='o', markersize=4, ecolor='gray', capsize=2, label='Slope', color="#EE1C1C")
-    ax1.set_xlabel('Relaxation time [h]', fontsize=33)
+    ax1.errorbar(time/3600, k, yerr=k_err, fmt='o', markersize=5, ecolor='gray', capsize=2, label='Slope', color="#EE1C1C")
+    #ax1.set_xlabel('Relaxation time [h]', fontsize=33)
+    ax1.set_xlabel('Time after manipulation [h]', fontsize=33)
     ax1.set_ylabel('Linear fit slope [-]', fontsize=33)
     #ax1.set_title('Slope and Offset vs Time')
     ax1.tick_params(axis='both', labelsize=26)
@@ -3184,71 +3196,128 @@ def plot_trend_active_vs_total_resistance_gain(
     ax1.legend(fontsize=26, loc='lower right')
 
     # Bottom plot: offset
-    ax2.errorbar(time/3600, m, yerr=m_err, fmt='o', markersize=4, ecolor='gray', capsize=2, label='Offset', color="#1CEE70")
+    ax2.errorbar(time/3600, m, yerr=m_err, fmt='o', markersize=5, ecolor='gray', capsize=2, label='Offset', color="#1CEE70")
     ax2.tick_params(axis='both', labelsize=26)
     ax2.set_ylim(0,4.1)
-    ax2.set_xlabel('Relaxation time [h]', fontsize=33)
+    #ax2.set_xlabel('Relaxation time [h]', fontsize=33)
+    ax2.set_xlabel('Time after manipulation [h]', fontsize=33)
     ax2.set_ylabel('Linear fit offset [%]', fontsize=33)
     ax2.grid(True)
     ax2.legend(fontsize=26, loc='lower right')
     
     # Third plot: RMS deviation
-    ##ax3.plot(time/3600, rms_dev, 'o-', color="#1C70EE", label='RMS deviation')
-    ax3.errorbar(time/3600, rms_dev, yerr=rms_serr, fmt='o', markersize=4, ecolor='gray', capsize=2, label='RMS deviation', color="#1C70EE")
-    ax3.tick_params(axis='both', labelsize=26)
-    ax3.set_xlabel('Relaxation time [h]', fontsize=33)
-    ax3.set_ylabel('Deviation from fit [%]', fontsize=33)
-    ax3.set_ylim(0,4.1)
-    ax3.grid(True)
-    ax3.legend(fontsize=26, loc='lower right')
+    if plot_RMS_deviation:
+        ##ax3.plot(time/3600, rms_dev, 'o-', color="#1C70EE", label='RMS deviation')
+        ax3.errorbar(time/3600, rms_dev, yerr=rms_serr, fmt='o', markersize=5, ecolor='gray', capsize=2, label='RMS deviation', color="#1C70EE")
+        ax3.tick_params(axis='both', labelsize=26)
+        ax3.set_xlabel('Relaxation time [h]', fontsize=33)
+        ax3.set_ylabel('Deviation from fit [%]', fontsize=33)
+        ax3.set_ylim(0,4.1)
+        ax3.grid(True)
+        ax3.legend(fontsize=26, loc='lower right')
     
-    ## # Insert plot.
-    ## axins = ax2.inset_axes([0.55, 0.55, 0.4, 0.4])  # [x0, y0, width, height] in axes fraction
-    ## axins.plot(time/3600, rms_dev, 'o-', color="#1C70EE", markersize=3)
-    ## axins.set_title("RMS dev.", fontsize=26)
-    ## axins.tick_params(axis='both', labelsize=24)
-    ## axins.grid(True)
-    
-    '''## Perform ln-fits and add these to plots.
+    ## Perform ln-fits and add these to plots.
     # Define decaying logarithm function
+    def log_decay_tau(t, a, b, tau):
+        return a - b * np.log(1 + t / tau)
     def log_decay(t, a, b):
         return a - b * np.log(t)
-    ##def log_decay(t, a, b, c):
-    ##    return a - b * np.log(t + c)
+    ####def log_decay(t, a, b, c):
+    ####    return a - b * np.log(t + c)
 
     # After k, m, etc. are computed and converted to numpy arrays:
     time_hours = time / 3600  # Use hours for plotting
 
     # Fit slope (k)
-    mask_k = ~np.isnan(k) & (time_hours > 0)
+    '''mask_k = ~np.isnan(k) & (time_hours > 0)
     if np.sum(mask_k) > 3:  # Need enough points
         popt_k, _ = curve_fit(log_decay, time_hours[mask_k], k[mask_k],
                               p0=[np.max(k), 1.0], maxfev=10000)
         fit_k = log_decay(time_hours, *popt_k)
         ax1.plot(time_hours, fit_k, '-.', color="black", lw=2,
                  label=f"Log fit: {popt_k[0]:.2f} {popt_k[1]:+.2f}·ln(t)", zorder=10)
-        print("Optimal k:\n"+str(popt_k)+"\n")
-
+        print("Optimal k:\n"+str(popt_k)+"\n")'''
+    """mask_k = ~np.isnan(k) & (time_hours > 0)
+    if np.sum(mask_k) > 3:  # Need enough points
+        popt_k, pcov_k = curve_fit(
+            log_decay,
+            time_hours[mask_k],
+            k[mask_k],
+            p0=[np.max(k), 0.1, 0.1],     # a, b, tau
+            bounds=([0, 0, 1e-6], [np.inf, np.inf, np.inf]),
+            maxfev=20000
+        )
+        fit_k = log_decay(time_hours, *popt_k)
+        """
+    mask_k = ~np.isnan(k) & (time_hours > 0)
+    p0 = [k[mask_k][0], 0.1]  # start value + small slope
+    popt_k, pcov_k = curve_fit(
+        log_model,
+        time_hours[mask_k],
+        k[mask_k],
+        p0=p0,
+        maxfev=20000
+    )
+    ax1.plot(
+        time_hours,
+        fit_k,
+        '-.',
+        color='black',
+        lw=2,
+        label=(
+            rf"Log fit: $a={popt_k[0]:.2f},\ "
+            rf"b={popt_k[1]:.2f},\ "
+            rf"\tau={popt_k[2]:.2f}\,\mathrm{{h}}$"
+        ),
+        zorder=10
+    )
+    print("Optimal k parameters:", popt_k)
+    
+    
     # Fit offset (m)
-    mask_m = ~np.isnan(m) & (time_hours > 0)
+    '''mask_m = ~np.isnan(m) & (time_hours > 0)
     if np.sum(mask_m) > 3:
         popt_m, _ = curve_fit(log_decay, time_hours[mask_m], m[mask_m],
                               p0=[np.max(m), 1.0, 1.0], maxfev=10000)
         fit_m = log_decay(time_hours, *popt_m)
         ax2.plot(time_hours, fit_m, '-.', color="black", lw=2,
                  label=f"Log fit: {popt_m[0]:.2f} {popt_m[1]:+.2f}·ln(t)", zorder=10)
-        print("Optimal m:\n"+str(popt_m)+"\n")
+        print("Optimal m:\n"+str(popt_m)+"\n")'''
+    mask_m = ~np.isnan(m) & (time_hours > 0)
+    if np.sum(mask_m) > 3:  # Need enough points
+        popt_m, pcov_m = curve_fit(
+            log_decay_tau,
+            time_hours[mask_m],
+            m[mask_m],
+            ##p0=[np.max(m), 0.1, 0.1],
+            p0=[0.3, 0.1, 15.0],
+            ##bounds=([0, 0, 1e-6], [np.inf, np.inf, np.inf]),
+            bounds=([0, 1e-4, 1e-3], [np.inf, np.inf, np.inf]),
+            maxfev=20000
+        )
+        fit_m = log_decay(time_hours, *popt_m)
+        ax2.plot(
+            time_hours,
+            fit_m,
+            '-.',
+            color='black',
+            lw=2,
+            label=(
+                rf"Log fit: $a={popt_m[0]:.2f},\ "
+                rf"b={popt_m[1]:.2f},\ "
+                rf"\tau={popt_m[2]:.2f}\,\mathrm{{h}}$"
+            ),
+            zorder=10
+        )
+        print("Optimal m parameters:", popt_m)
     
     # Update legends to include fits
-    ax1.legend(fontsize=26, loc='lower right')
-    ax2.legend(fontsize=26, loc='lower right')
-    '''
-    
-    # Go through the list of samples n, and append vertical lines to where this makes sense.
-    print("TODO: add verical lines showing n of samples left.")
+    ##ax1.legend(fontsize=26, loc='lower right')
+    ##ax2.legend(fontsize=26, loc='lower right')
     
     # Tight layout!
     plt.tight_layout()
+    plt.subplots_adjust(wspace=0.135)
     
     # Save plot?
     if savepath != '':
@@ -3968,8 +4037,8 @@ def perform_stepped_manipulation_analysis(
         '''fig2, axs2 = plt.subplots(2, 2, figsize=(31.1, 13))''' # Removed, useful for research but co-authors don't want this in the paper.
         fig3, axs3 = plt.subplots(1, 2, figsize=(25.4, 13))
     else:
-        raise NotImplementedError("Todo!")
-        fig1, axs1 = plt.subplots(2, 2, figsize=(12.8, 13))
+        fig1, axs1 = plt.subplots(1, 2, figsize=(31.1, 13))
+        fig3, axs3 = plt.subplots(1, 2, figsize=(25.4, 13))
     
     # During the process, we will try to figure out the y limit for plots
     # showing resistance increase values.
@@ -4175,7 +4244,7 @@ def perform_stepped_manipulation_analysis(
         ## Subplot 3:
         
         # Plot!
-        axs1[1].scatter(resistance_increase_at_start_of_trench_percent, resistance_trench_depth_percent, s=80, color=colour_list[-1], label=label_tag)
+        axs1[1].scatter(resistance_increase_at_start_of_trench_percent, resistance_trench_depth_percent, s=190, color=colour_list[-1], label=label_tag)
         #axs1[1].plot(   resistance_increase_at_start_of_trench_percent, resistance_trench_depth_percent,       color=colour_list[-1]                 )
         
         # Axis labels.
@@ -4415,6 +4484,7 @@ def compare_junction_oxidation_dose_to_known_dataset(
 def compare_aging_vs_junction_sizes(
     savepath = '',
     logarithmise_absolute_resistance = False,
+    override_set_xlog = False,
     plot_fit = True,
     ):
     ''' Reconstruct plots from Maurizio Toselli's thesis and his raw data,
@@ -4908,7 +4978,11 @@ def compare_aging_vs_junction_sizes(
         ax2_3.grid(True, which="both", ls="--")
     else:
         ##ax2_3.set_yscale('log')
-        ax2_3.set_xlim(-0.8, 32.8)
+        if override_set_xlog:
+            ax2_3.set_xscale('log')
+            ax2_3.set_xlim(-120.8, 60)
+        else:
+            ax2_3.set_xlim(-0.8, 32.8)
         ax2_3.set_ylim(-1, 42)
         ax2_3.set_xlabel("Time since deposition [days]", fontsize=33)
         ax2_3.set_ylabel("Resistance increase [%]", fontsize=33)
