@@ -3218,10 +3218,12 @@ def plot_trend_active_vs_total_resistance_gain(
     
     ## Perform ln-fits and add these to plots.
     # Define decaying logarithm function
+    #def log_decay_tau(t, a, b, tau, t0):
+    #    return a - b * np.log(1 + (t - t0) / tau)
     def log_decay_tau(t, a, b, tau):
         return a - b * np.log(1 + t / tau)
-    def log_decay(t, a, b):
-        return a - b * np.log(t)
+    #def log_decay(t, a, b):
+    #    return a - b * np.log(t)
     ####def log_decay(t, a, b, c):
     ####    return a - b * np.log(t + c)
 
@@ -3250,14 +3252,16 @@ def plot_trend_active_vs_total_resistance_gain(
         fit_k = log_decay(time_hours, *popt_k)
         """
     mask_k = ~np.isnan(k) & (time_hours > 0)
-    p0 = [k[mask_k][0], 0.1]  # start value + small slope
+    p0 = [k[mask_k][0], 0.1, 0.1]  # start value + small slope
     popt_k, pcov_k = curve_fit(
-        log_model,
+        log_decay_tau,
         time_hours[mask_k],
         k[mask_k],
         p0=p0,
+        bounds=([0.95, -5, 1e-10], [1.05, np.inf, np.inf]),
         maxfev=20000
     )
+    fit_k = log_decay_tau(time_hours, *popt_k)
     ax1.plot(
         time_hours,
         fit_k,
@@ -3269,6 +3273,10 @@ def plot_trend_active_vs_total_resistance_gain(
             rf"b={popt_k[1]:.2f},\ "
             rf"\tau={popt_k[2]:.2f}\,\mathrm{{h}}$"
         ),
+        #label=(
+        #    rf"Log fit: $a={popt_k[0]:.2f},\ "
+        #    rf"b={popt_k[1]:.2f}\,\mathrm{{h}}$"
+        #),
         zorder=10
     )
     print("Optimal k parameters:", popt_k)
@@ -3284,18 +3292,30 @@ def plot_trend_active_vs_total_resistance_gain(
                  label=f"Log fit: {popt_m[0]:.2f} {popt_m[1]:+.2f}·ln(t)", zorder=10)
         print("Optimal m:\n"+str(popt_m)+"\n")'''
     mask_m = ~np.isnan(m) & (time_hours > 0)
-    if np.sum(mask_m) > 3:  # Need enough points
-        popt_m, pcov_m = curve_fit(
-            log_decay_tau,
-            time_hours[mask_m],
-            m[mask_m],
-            ##p0=[np.max(m), 0.1, 0.1],
-            p0=[0.3, 0.1, 15.0],
-            ##bounds=([0, 0, 1e-6], [np.inf, np.inf, np.inf]),
-            bounds=([0, 1e-4, 1e-3], [np.inf, np.inf, np.inf]),
-            maxfev=20000
-        )
-        fit_m = log_decay(time_hours, *popt_m)
+    if np.sum(mask_m) > 4:  # Need enough points
+        try:
+            popt_m, pcov_m = curve_fit(
+                log_decay_tau,
+                time_hours[mask_m],
+                m[mask_m],
+                ##p0=[np.max(m), 0.1, 0.1],
+                p0=[0.05, 0.1, 0.1],
+                ##bounds=([0, 0, 1e-6], [np.inf, np.inf, np.inf]),
+                bounds=([0, -1, 1e-8], [0.1, np.inf, np.inf]),
+                maxfev=20000
+            )
+        except ValueError:
+            popt_m, pcov_m = curve_fit(
+                log_decay_tau,
+                time_hours[mask_m],
+                m[mask_m],
+                ##p0=[np.max(m), 0.1, 0.1],
+                p0=[0.05, 0.1, 0.1],
+                ##bounds=([0, 0, 1e-6], [np.inf, np.inf, np.inf]),
+                bounds=([0, -1, 1e-8], [0.1, np.inf, np.inf]),
+                maxfev=20000
+            )
+        fit_m = log_decay_tau(time_hours, *popt_m)
         ax2.plot(
             time_hours,
             fit_m,
@@ -3312,8 +3332,8 @@ def plot_trend_active_vs_total_resistance_gain(
         print("Optimal m parameters:", popt_m)
     
     # Update legends to include fits
-    ##ax1.legend(fontsize=26, loc='lower right')
-    ##ax2.legend(fontsize=26, loc='lower right')
+    ax1.legend(fontsize=26, loc='lower right')
+    ax2.legend(fontsize=26, loc='lower right')
     
     # Tight layout!
     plt.tight_layout()
@@ -3327,7 +3347,7 @@ def plot_trend_active_vs_total_resistance_gain(
     plt.show()
     
     # Return!
-    return list_of_slopes, list_of_offsets, list_of_slopes_err, list_of_offsets_err, list_of_n_samples, list_of_rms_deviations
+    return list_of_slopes, list_of_offsets, list_of_slopes_err, list_of_offsets_err, list_of_n_samples, list_of_rms_deviations, (popt_k, popt_m)
 
 
 def plot_active_vs_total_resistance_gain(
