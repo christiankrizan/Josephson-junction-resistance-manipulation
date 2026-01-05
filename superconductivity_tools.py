@@ -3245,15 +3245,14 @@ def plot_trend_active_vs_total_resistance_gain(
         ax3.legend(fontsize=26, loc='lower right')
     
     ## Perform ln-fits and add these to plots.
-    # Define decaying logarithm function
-    #def log_growth_tau(t, a, b, tau, t0):
-    #    return a - b * np.log(1 + (t - t0) / tau)
     def log_growth_tau(t, a, b, tau):
         return a + b * np.log(1 + t / tau)
-    def log_growth(t, a, b):
-        return a + b * np.log(t)
+    #def log_growth(t, a, b):
+    #    return a + b * np.log(t)
     ####def log_decay(t, a, b, c):
-    ####    return a - b * np.log(t + c)
+    ####    return a + b * np.log(t + c)
+    #def power_growth(t, a, c, alpha):
+    #    return c * (t**alpha) + a
 
     # After k, m, etc. are computed and converted to numpy arrays:
     time_hours = time / 3600  # Use hours for plotting
@@ -3269,6 +3268,7 @@ def plot_trend_active_vs_total_resistance_gain(
         bounds=([1.0, -np.inf, 1e-10], [1.05, np.inf, np.inf]),
         maxfev=20000
     )
+    #fit_k = power_growth(time_hours, *popt_k)
     fit_k = log_growth_tau(time_hours, *popt_k)
     ax1.plot(
         time_hours,
@@ -3277,14 +3277,14 @@ def plot_trend_active_vs_total_resistance_gain(
         color='black',
         lw=2,
         label=(
-            rf"Log fit: $a={popt_k[0]:.2f},\ "
-            rf"b={popt_k[1]:.2f},\ "
-            rf"\tau={popt_k[2]*3600:.1f}\,\mathrm{{s}}$"
+            f"Fit, $a + b\\cdot \\ln(t/\\tau)$:\n"
+            f"$a={popt_k[0]:.2f},\\ "
+            f"b={popt_k[1]:.2f},\\ "
+            f"\\tau={popt_k[2]*3600:.1f}\\,\\mathrm{{s}}$"
         ),
         zorder=10
     )
     print("Optimal k parameters:", popt_k)
-    
     
     # Fit offset (m)
     mask_m = ~np.isnan(m) & (time_hours > 0)
@@ -3295,11 +3295,10 @@ def plot_trend_active_vs_total_resistance_gain(
             m[mask_m],
             p0=[0.05, 0.1, 0.1],
             bounds=([0, -1, 1e-8], [0.1, np.inf, np.inf]),
-            ##bounds=([0, -np.inf], [0.1, np.inf]),
             maxfev=20000
         )
+        #fit_m = power_growth(time_hours, *popt_m)
         fit_m = log_growth_tau(time_hours, *popt_m)
-        #fit_m = log_growth(time_hours, *popt_m)
         ax2.plot(
             time_hours,
             fit_m,
@@ -3307,14 +3306,34 @@ def plot_trend_active_vs_total_resistance_gain(
             color='black',
             lw=2,
             label=(
-                rf"Log fit: $a={popt_m[0]:.2f},\ "
-                #rf"b={popt_m[1]:.2f}$"
-                rf"b={popt_m[1]:.2f},\ "
-                rf"\tau={popt_m[2]*3600000:.1f}\,\mathrm{{ms}}$"
+                f"Fit, $a + b\\cdot \\ln(t/\\tau)$:\n"
+                f"$a={popt_m[0]:.2f}\\,\\mathrm{{\\%}},\\ "
+                f"b={popt_m[1]:.2f}\\,\\mathrm{{\\%}},\\ "
+                f"\\tau={popt_m[2]*3600000:.1f}\\,\\mathrm{{ms}}$"
             ),
             zorder=10
         )
         print("Optimal m parameters:", popt_m)
+    
+    # Calculate deviation from latest fit.
+    deviation_k = k[mask_k] - log_growth_tau(time_hours[mask_k], *popt_k)
+    deviation_m = m[mask_m] - log_growth_tau(time_hours[mask_m], *popt_m)
+    mean_devk = np.mean(deviation_k)
+    mean_devm = np.mean(deviation_m)
+    variance_devk = np.var(deviation_k)
+    variance_devm = np.var(deviation_m)
+    
+    print("Mean and variance of k-fit-deviation: "+str(mean_devk)+", "+str(variance_devk))
+    print("Mean and variance of m-fit-deviation: "+str(mean_devm)+", "+str(variance_devm))
+    
+    # Plot latest fit error.
+    '''fig2, (ax4, ax5) = plt.subplots(1, 2, figsize=(25.31, 10), sharex=True)
+    ax4.plot(time_hours[mask_k], deviation_k)
+    ax5.plot(time_hours[mask_m], deviation_m)
+    ax4.set_xlabel("Time [h]")
+    ax5.set_xlabel("Time [h]")
+    ax4.set_ylabel("Linear fit slope deviation")
+    ax5.set_ylabel("Linear fit offset deviation")'''
     
     # Update legends to include fits
     ax1.legend(fontsize=26, loc='lower right')
@@ -3332,7 +3351,7 @@ def plot_trend_active_vs_total_resistance_gain(
     plt.show()
     
     # Return!
-    return list_of_slopes, list_of_offsets, list_of_slopes_err, list_of_offsets_err, list_of_n_samples, list_of_rms_deviations, list_of_rms_standard_errors, (popt_k, popt_m)
+    return list_of_slopes, list_of_offsets, list_of_slopes_err, list_of_offsets_err, list_of_n_samples, list_of_rms_deviations, list_of_rms_standard_errors, (popt_k, popt_m), (deviation_k, deviation_m)
 
 
 def plot_active_vs_total_resistance_gain(
