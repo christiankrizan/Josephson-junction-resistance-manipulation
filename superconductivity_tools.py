@@ -3213,7 +3213,7 @@ def plot_trend_active_vs_total_resistance_gain(
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(25.31, 10), sharex=True)
 
     # Top plot: slope
-    ax1.errorbar(time/3600, k, yerr=k_err, fmt='o', markersize=5, ecolor='gray', capsize=2, label='Slope', color="#EE1C1C")
+    ax1.errorbar(time/3600, k, yerr=k_err, fmt='o', markersize=5, ecolor='gray', capsize=2, label='Slope $k(t\')$', color="#EE1C1C")
     #ax1.set_xlabel('Relaxation time [h]', fontsize=33)
     ax1.set_xlabel('Time after manipulation [h]', fontsize=33)
     ax1.set_ylabel('Linear fit slope [-]', fontsize=33)
@@ -3224,7 +3224,7 @@ def plot_trend_active_vs_total_resistance_gain(
     ax1.legend(fontsize=26, loc='lower right')
 
     # Bottom plot: offset
-    ax2.errorbar(time/3600, m, yerr=m_err, fmt='o', markersize=5, ecolor='gray', capsize=2, label='Offset', color="#1CEE70")
+    ax2.errorbar(time/3600, m, yerr=m_err, fmt='o', markersize=5, ecolor='gray', capsize=2, label='Offset $m(t\')$', color="#1CEE70")
     ax2.tick_params(axis='both', labelsize=26)
     ax2.set_ylim(0,4.1)
     #ax2.set_xlabel('Relaxation time [h]', fontsize=33)
@@ -3277,7 +3277,7 @@ def plot_trend_active_vs_total_resistance_gain(
         color='black',
         lw=2,
         label=(
-            f"Fit, $a + b\\cdot \\ln(t/\\tau)$:\n"
+            f"Fit, $k(t') = a + b\\cdot \\ln(t'/\\tau)$:\n"
             f"$a={popt_k[0]:.2f},\\ "
             f"b={popt_k[1]:.2f},\\ "
             f"\\tau={popt_k[2]*3600:.1f}\\,\\mathrm{{s}}$"
@@ -3306,7 +3306,7 @@ def plot_trend_active_vs_total_resistance_gain(
             color='black',
             lw=2,
             label=(
-                f"Fit, $a + b\\cdot \\ln(t/\\tau)$:\n"
+                f"Fit, $m(t') = a + b\\cdot \\ln(t'/\\tau)$:\n"
                 f"$a={popt_m[0]:.2f}\\,\\mathrm{{\\%}},\\ "
                 f"b={popt_m[1]:.2f}\\,\\mathrm{{\\%}},\\ "
                 f"\\tau={popt_m[2]*3600000:.1f}\\,\\mathrm{{ms}}$"
