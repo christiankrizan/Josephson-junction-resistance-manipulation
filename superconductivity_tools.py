@@ -3929,16 +3929,18 @@ def plot_quality_factor_vs_manipulation(
 def perform_stepped_manipulation_analysis(
     filepath_list,
     normalise_time = 1,
-    study_relaxation_here_idx = 30,
+    study_relaxation_here_idx = 30, # 30 → 30 minutes.
     savepath = ''
     ):
-    ''' Take a stepped manipulation measurement, and perform various
-        analyses on it.
+    ''' Perform various analyses on a stepped active manipulation experiment.
         
         normalise_time:
-        0 = X axis will be in UNIX timestamp.
-        1 = X axis is now a duration, with t₀ set at the timestamp of the
-            very first datapoint.
+            0 = X axis shows the UNIX timestamp.
+            1 = X axis is now a duration, with t₀ set at the timestamp of the
+                very first datapoint.
+        
+        study_relaxation_here_idx:
+            Sets which time the relaxation portions are analysed at.
     '''
     
     def unit_multiplier(unit_str):
@@ -3998,6 +4000,13 @@ def perform_stepped_manipulation_analysis(
         }
         
         for start_row in range(3, len(df), 6):  # 0-indexed, so row 4 is index 3
+            # Extract timestamp
+            try:
+                timestamp_value = float(df.iat[start_row + 1, 1])  # B5, B11, etc.
+            except (ValueError, TypeError):
+                timestamp_value = np.nan
+            timestamps.append(timestamp_value)
+            
             # Extract unit and apply multiplier
             unit_cell = str(df.iat[start_row, 0])  # A4, A10, A16, etc.
             multiplier = unit_multiplier(unit_cell)
@@ -4017,13 +4026,6 @@ def perform_stepped_manipulation_analysis(
                 print("WARNING! Failed reading resistance error bar value at data row "+str(start_row)+" (0-indexed).")
                 errorbar_value = np.nan  # Set to NaN
             errorbars.append(errorbar_value)
-            
-            # Extract timestamp
-            try:
-                timestamp_value = float(df.iat[start_row + 1, 1])  # B5, B11, etc.
-            except (ValueError, TypeError):
-                timestamp_value = np.nan
-            timestamps.append(timestamp_value)
             
             # Check annotation string
             try:
@@ -4087,6 +4089,10 @@ def perform_stepped_manipulation_analysis(
         # Number of valid manipulation intervals is the minimum of the lengths.
         n_intervals = min(len(annotations['START_MANIPULATION']), len(annotations['STOP_MANIPULATION']))
 
+        ## Define list for calculating where, in time, that the relaxation
+        ## is analysed.
+        relaxation_sample_period_list = []
+        
         # Loop through each valid pair, that is, we are on the lookout for
         # erroneous entries that could happen if the device broke during
         # manipulation.
@@ -4109,10 +4115,21 @@ def perform_stepped_manipulation_analysis(
             # Store.
             resistance_added_ohm.append(delta_res)
             time_taken_for_manipulation.append(delta_time)
+            
+            # Get step size held during the relaxation, as well.
+            start_relax_idx = annotations['START_CREEP'][i]
+            relaxation_sample_period_list.append(
+                dump_timestamps[start_relax_idx+study_relaxation_here_idx] - dump_timestamps[start_relax_idx]
+            )
         
-        # Numpy conversion.
+        # Numpy conversions.
         resistance_added_ohm = np.array(resistance_added_ohm)
         time_taken_for_manipulation = np.array(time_taken_for_manipulation)
+        relaxation_sample_period_list = np.array(relaxation_sample_period_list)
+        
+        # Calculate at what time the relaxation was studied.
+        mean_relaxation_time_selected = np.mean(relaxation_sample_period_list)
+        print("Relaxation time selected, mean: "+str(mean_relaxation_time_selected/60)+str(" min"))
         
         # Calculate resistance as percentages of increase relative
         # to the original resistance value.
@@ -4337,7 +4354,8 @@ def perform_stepped_manipulation_analysis(
             
             # Add line to show where the relaxation is being studied.
             if ii == 0:
-                axs3[0].axvline(relaxation_trace_data_xy[ii][0][study_relaxation_here_idx]/60, color="#EE1C1C", linestyle='--', linewidth=1.5, label="_something")
+                ##axs3[0].axvline(relaxation_trace_data_xy[ii][0][study_relaxation_here_idx]/60, color="#EE1C1C", linestyle='--', linewidth=1.5, label="_something")
+                axs3[0].axvline(mean_relaxation_time_selected/60, color="#EE1C1C", linestyle='--', linewidth=1.5, label="_something")
             
             # Right plot.
             axs3[1].plot(relaxation_stack_xy[ii][0]/3600, relaxation_stack_xy[ii][1], color=colour_list[ii])
@@ -4361,7 +4379,7 @@ def perform_stepped_manipulation_analysis(
             axs3[0].set_xlabel("Duration [min]", fontsize=33)
             axs3[0].set_ylabel("Resistance increase [%]", fontsize=33)
             axs3[0].tick_params(axis='both', labelsize=26)
-            axs3[1].set_xlabel("Time since beginning [h]", fontsize=33)
+            axs3[1].set_xlabel("Time since experiment start [h]", fontsize=33)
             axs3[1].set_ylabel("Resistance increase [%]", fontsize=33)
             axs3[1].tick_params(axis='both', labelsize=26)
             
