@@ -4363,7 +4363,7 @@ def perform_stepped_manipulation_analysis(
             # Add line to show where the relaxation is being studied.
             if ii == 0:
                 ##axs3[0].axvline(relaxation_trace_data_xy[ii][0][study_relaxation_here_idx]/60, color="#EE1C1C", linestyle='--', linewidth=1.5, label="_something")
-                axs3[0].axvline(mean_relaxation_time_selected/60, color="#EE1C1C", linestyle='--', linewidth=1.5, label="_something")
+                axs3[0].axvline(mean_relaxation_time_selected/60, color="#000000", linestyle='-.', linewidth=1.5, label="_something")
             
             # Right plot.
             axs3[1].plot(relaxation_stack_xy[ii][0]/3600, relaxation_stack_xy[ii][1], color=colour_list[ii])
@@ -4371,7 +4371,14 @@ def perform_stepped_manipulation_analysis(
                 axs3[1].scatter(relaxation_stack_xy[ii][0]/3600, relaxation_stack_xy[ii][1], s=90, color="#C4EE1C", label=label_tag)
             else:
                 ##axs3[1].scatter(relaxation_stack_xy[ii][0]/3600, relaxation_stack_xy[ii][1], s=90, color=colour_list[ii], label="_something")'''
-            axs3[1].scatter(relaxation_stack_xy[ii][0]/3600, relaxation_stack_xy[ii][1], s=90, color=colour_list[ii], label="Step "+str(ii+1))
+            axs3[1].scatter(
+                relaxation_stack_xy[ii][0] / 3600,
+                relaxation_stack_xy[ii][1],
+                s=90,
+                color=colour_list[ii],
+                marker='*',
+                label="Step " + str(ii + 1)
+            )
             
             # Limits.
             ## Use same axes for the (a) subplot.
@@ -4424,7 +4431,7 @@ def perform_stepped_manipulation_analysis(
             
             # Set limits.
             axs3[0].set_xlim(0.06, 230)
-            axs3[1].set_xlim(-2.5, 102.5)
+            axs3[1].set_xlim(-2.5, 112.5)
             axs3[0].set_ylim(-0.5, 9)
             axs3[1].set_ylim(-0.5, 9)
             
