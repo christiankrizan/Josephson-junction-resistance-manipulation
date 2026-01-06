@@ -26,10 +26,11 @@ import numpy as np
 import pandas as pd
 import csv
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import sys
 import os
 import re
-import colorsys # Used for generating curve colours.
+import colorsys ## This library does not compile on FreeBSD as of 2025-12-28 // Christian
 import time as time_module
 from scipy.optimize import curve_fit
 from scipy.stats import ttest_rel
@@ -4247,7 +4248,14 @@ def perform_stepped_manipulation_analysis(
         elif ('jjanneal01c' in filepath.lower()):
             #label_tag = '200 nm low_dose-oxide'
             label_tag = 'Low-dose 1'
-            colour_list = interpolate_hsv_colours("#1C70EE", "#1CEE70", len(relaxation_trace_data_xy))
+            ##colour_list = interpolate_hsv_colours("#1C70EE", "#1CEE70", len(relaxation_trace_data_xy))
+            print("Warning: over-writing the HSV colour maker with preset colours.")
+            colour_list = [
+                '#EE1C1C', '#EE5B1C', '#EE9A1C', '#EED91C',
+                '#C4EE1C', '#85EE1C', '#46EE1C', '#1CEE31',
+                '#1CEE70', '#1CEEAF', '#1CEEEE', '#1CAFEE',
+                '#1C70EE', '#1C31EE', '#461CEE', '#851CEE'
+            ]
         else:
             label_tag = None
             colour_list = interpolate_hsv_colours("#1C70EE", "#1CEE70", len(relaxation_trace_data_xy))
@@ -4347,10 +4355,10 @@ def perform_stepped_manipulation_analysis(
         # Plot!
         for ii in range(len(relaxation_trace_data_xy)):
             if kk < 1:
-                if ii == 0:
-                    axs3[0].scatter(relaxation_trace_data_xy[ii][0]/60, relaxation_trace_data_xy[ii][1], color=colour_list[ii], label=label_tag)
-                else:
-                    axs3[0].scatter(relaxation_trace_data_xy[ii][0]/60, relaxation_trace_data_xy[ii][1], color=colour_list[ii], label="_something")
+                '''if ii == 0:
+                    axs3[0].scatter(relaxation_trace_data_xy[ii][0]/60, relaxation_trace_data_xy[ii][1], color="#C4EE1C", label=label_tag)
+                else:'''
+                axs3[0].scatter(relaxation_trace_data_xy[ii][0]/60, relaxation_trace_data_xy[ii][1], color=colour_list[ii], label="Step "+str(ii+1))
             
             # Add line to show where the relaxation is being studied.
             if ii == 0:
@@ -4359,10 +4367,11 @@ def perform_stepped_manipulation_analysis(
             
             # Right plot.
             axs3[1].plot(relaxation_stack_xy[ii][0]/3600, relaxation_stack_xy[ii][1], color=colour_list[ii])
-            if ii == len(relaxation_stack_xy)-1:
-                axs3[1].scatter(relaxation_stack_xy[ii][0]/3600, relaxation_stack_xy[ii][1], s=90, color=colour_list[ii], label=label_tag)
+            '''if ii == len(relaxation_stack_xy)-1:
+                axs3[1].scatter(relaxation_stack_xy[ii][0]/3600, relaxation_stack_xy[ii][1], s=90, color="#C4EE1C", label=label_tag)
             else:
-                axs3[1].scatter(relaxation_stack_xy[ii][0]/3600, relaxation_stack_xy[ii][1], s=90, color=colour_list[ii], label="_something")
+                ##axs3[1].scatter(relaxation_stack_xy[ii][0]/3600, relaxation_stack_xy[ii][1], s=90, color=colour_list[ii], label="_something")'''
+            axs3[1].scatter(relaxation_stack_xy[ii][0]/3600, relaxation_stack_xy[ii][1], s=90, color=colour_list[ii], label="Step "+str(ii+1))
             
             # Limits.
             ## Use same axes for the (a) subplot.
@@ -4372,16 +4381,52 @@ def perform_stepped_manipulation_analysis(
             ##axs3[1].set_ylim(-0.5,y_lim_top_relaxation)
             
             # Grid.
-            axs3[0].grid(True)
+            axs3[0].grid(True, which="major")
+            axs3[0].grid(True, which="minor", linestyle="-", linewidth=0.8, alpha=0.5)
             axs3[1].grid(True)
             
-            # Axis labels.
+            # Log-ify subplot (a), and adjust the ticks to avoid two million log-decimals.
+            axs3[0].set_xscale('log', base=np.e) ## Set the log-basis for the log-x to equate to the natural logarithm.
+            '''major_ticks = [0.1, 1, 10, 100]
+            axs3[0].set_xticks(major_ticks)
+            axs3[0].xaxis.set_minor_locator(
+                mticker.LogLocator(base=np.e, subs=np.arange(2, 10), numticks=10)
+            )
+            def log_tick_formatter(x, pos):
+                if x in major_ticks:
+                    return f"{x:.1f}" if x < 1 else f"{int(x)}"
+                return ""
+            axs3[0].xaxis.set_major_formatter(
+                mticker.FuncFormatter(log_tick_formatter)
+            )
+            axs3[0].xaxis.set_minor_formatter(mticker.NullFormatter())'''
+            
+            axs3[0].xaxis.set_major_locator(
+                mticker.LogLocator(base=np.e, numticks=8)
+            )
+            axs3[0].xaxis.set_major_formatter(
+                mticker.FuncFormatter(lambda x, _: f"{x:.0f}")
+            )
+            axs3[0].set_xticklabels(
+                [0.1, "", "", "", "", "", "", "", "", 1, "", "", "", "", "", "", "", "", 10, "", "", "", "", "", "", "", "", 100, ""],
+                fontsize=26
+            )
+            desired_ticks_min = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200])
+            axs3[0].set_xticks(desired_ticks_min)
+            
+            # Axis labels and such.
             axs3[0].set_xlabel("Duration [min]", fontsize=33)
             axs3[0].set_ylabel("Resistance increase [%]", fontsize=33)
             axs3[0].tick_params(axis='both', labelsize=26)
             axs3[1].set_xlabel("Time since experiment start [h]", fontsize=33)
             axs3[1].set_ylabel("Resistance increase [%]", fontsize=33)
             axs3[1].tick_params(axis='both', labelsize=26)
+            
+            # Set limits.
+            axs3[0].set_xlim(0.06, 230)
+            axs3[1].set_xlim(-2.5, 102.5)
+            axs3[0].set_ylim(-0.5, 9)
+            axs3[1].set_ylim(-0.5, 9)
             
             # Legends!
             axs3[0].legend(fontsize=24)
