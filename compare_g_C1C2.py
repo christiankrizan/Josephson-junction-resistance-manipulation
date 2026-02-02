@@ -97,9 +97,9 @@ for sample in ["S1", "S2"]:
 
             e = eta[sample][qubit][cooldown]
             try:
-                c = twochi[sample][qubit][cooldown] / 2
+                c = twochi[sample][qubit][cooldown]
             except TypeError:
-                c = twochi[sample][qubit][cooldown] # The value was None, skip the divide-by-2.
+                c = twochi[sample][qubit][cooldown]
             d = Delta[sample][qubit][cooldown]
 
             # Skip if χ or Δ is missing.
