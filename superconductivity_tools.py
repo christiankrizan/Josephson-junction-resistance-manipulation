@@ -1001,8 +1001,9 @@ def plot_josephson_junction_resistance_manipulation_and_relaxation(
         ##fig, ax = plt.subplots(figsize=(13.58, 9.78)) #### (b) ####
         ##fig, ax = plt.subplots(figsize=(14.045, 9.75)) #### (d) ####
         
-        # Used for the stepped_active_manipulation data (sub)plots.
-        fig, ax = plt.subplots(figsize=(12.34, 13))
+        # Used for the stepped_active_manipulation data.
+        ##fig, ax = plt.subplots(figsize=(12.34, 13)) # When used as a subplot.
+        fig, ax = plt.subplots(figsize=(25.31, 10)) # Use this for full-width.
     
     # Create list that will keep track of where the "time = 0" points are
     # in the files.
@@ -1189,9 +1190,12 @@ def plot_josephson_junction_resistance_manipulation_and_relaxation(
                     if normalise_resistances == 3:
                         ##ax.plot(times, resistances_ohm, marker='o', linestyle='-', label=file_label + " [Ω]", color=dot_color)
                         print("TODO: dividing the time axis by 3600 to put it in hours instead of seconds.")
-                        ax.plot(times/3600, resistances_ohm, marker='o', linestyle='-', label="Low-dose 1", color=dot_color) ##label="200x200 nm low_dose-oxide", color=dot_color)
+                        #ax.plot(times/3600, resistances_ohm, marker='o', linestyle='-', label="Low-dose 1", color=dot_color) ##label="200x200 nm low_dose-oxide", color=dot_color)
                         #ax.plot(times/3600, resistances_ohm, marker='o', linestyle='-', label="Medium-dose 1", color=dot_color) ## label="350x350 nm medium_dose-oxide", color=dot_color)
                         #ax.plot(times/3600, resistances_ohm, marker='o', linestyle='-', label="High-dose 1", color=dot_color) ## label="318x318 nm high_dose-oxide", color=dot_color)
+                        
+                        ## Use this if plotting stepped, and you don't want to see the very last (junction=broken) datapoint.
+                        ax.plot(times[:-1]/3600, resistances_ohm[:-1], marker='o', linestyle='-', label="Low-dose 1", color=dot_color) ##label="200x200 nm low_dose-oxide", color=dot_color)
                         
                         if 'ax2' not in locals():
                             ax2 = ax.twinx()
@@ -1200,7 +1204,7 @@ def plot_josephson_junction_resistance_manipulation_and_relaxation(
                             # Set ylim limits!
                             
                             # Used for the stepped active manipulation examples.
-                            bottom_percent = -5
+                            bottom_percent = -35
                             top_percent = 280
                             
                             # Used for the (b) illustration example.
@@ -1229,7 +1233,10 @@ def plot_josephson_junction_resistance_manipulation_and_relaxation(
                             ax.set_ylim(((bottom_percent/100)+1)*resistances_ohm[0], ((top_percent/100)+1)*resistances_ohm[0])
                         
                         print("TODO: the percent-x axis has been divided into hours, instead of seconds.")
-                        ax2.plot(times/3600, resistances_pct, marker='o', linestyle='--', color=dot_color)
+                        #ax2.plot(times/3600, resistances_pct, marker='o', linestyle='--', color=dot_color)
+                        
+                        ## When plotting stepped, use this line to skip the very last (junction=broken) datapoint.
+                        ax2.plot(times[:-1]/3600, resistances_pct[:-1], marker='o', linestyle='--', color=dot_color)
                         
                     else:
                         plt.plot(times, resistances, marker='o', linestyle='-', label=file_label, color=dot_color)
@@ -1286,6 +1293,12 @@ def plot_josephson_junction_resistance_manipulation_and_relaxation(
     ##plt.ylabel(y_label_text, color=get_colourise(-1), fontsize=33)
     if savepath == '':
         plt.title("Resistance vs. Time", color=get_colourise(-1), fontsize=38)
+    
+    # Add zero along "0 %"
+    if normalise_resistances == 3 and 'ax2' in locals():
+        ax2.axhline(0, linestyle='-', linewidth=2, alpha=1, color="#1C70EE", zorder=0)
+    elif normalise_resistances in [1, 2]:
+        ax.axhline(0, linestyle='-', linewidth=2, alpha=1, color="#1C70EE", zorder=0)
     
     # Legend and layout.
     if normalise_resistances == 3:
@@ -3411,7 +3424,7 @@ def plot_trend_active_vs_total_resistance_gain(
         color='black',
         lw=2,
         label=(
-            f"Fit, $k(t') = a + b\\cdot \\ln(t'/\\tau)$:\n"
+            f"Fit, $k(t') = a + b\\cdot \\ln(1 + t'/\\tau)$:\n"
             f"$a={popt_k[0]:.2f},\\ "
             f"b={popt_k[1]:.2f},\\ "
             f"\\tau={popt_k[2]*3600:.1f}\\,\\mathrm{{s}}$"
@@ -3440,7 +3453,7 @@ def plot_trend_active_vs_total_resistance_gain(
             color='black',
             lw=2,
             label=(
-                f"Fit, $m(t') = a + b\\cdot \\ln(t'/\\tau)$:\n"
+                f"Fit, $m(t') = a + b\\cdot \\ln(1 + t'/\\tau)$:\n"
                 f"$a={popt_m[0]:.2f}\\,\\mathrm{{\\%}},\\ "
                 f"b={popt_m[1]:.2f}\\,\\mathrm{{\\%}},\\ "
                 f"\\tau={popt_m[2]*3600000:.1f}\\,\\mathrm{{ms}}$"
@@ -4198,7 +4211,7 @@ def perform_stepped_manipulation_analysis(
         fig3, axs3 = plt.subplots(1, 2, figsize=(25.4, 13))
     else:
         fig1, axs1 = plt.subplots(1, 2, figsize=(31.1, 13))
-        fig3, axs3 = plt.subplots(1, 2, figsize=(25.4, 13))
+        fig3, axs3 = plt.subplots(1, 2, figsize=(25.2, 13))
     
     # During the process, we will try to figure out the y limit for plots
     # showing resistance increase values.
@@ -4282,6 +4295,12 @@ def perform_stepped_manipulation_analysis(
         ## Plot 2 logic goes here.
         relaxation_trace_data_xy = []
         relaxation_stack_xy = []
+        
+        ## Also, the dots that appear from the plot of relaxation traces,
+        ## will be connected by semi-transparent lines. These two lists
+        ## will connect the values.
+        stack_x_all = []
+        stack_y_all = []
         
         # Number of valid manipulation intervals is the minimum of the lengths.
         n_intervals = min(len(annotations['START_CREEP']), len(annotations['STOP_CREEP']))
@@ -4509,9 +4528,15 @@ def perform_stepped_manipulation_analysis(
                 relaxation_stack_xy[ii][1],
                 s=90,
                 color=colour_list[ii],
-                marker='*',
+                marker='d',
                 label="Step " + str(ii + 1)
             )
+            
+            # Collect values for plotting a line through the scatter dots.
+            x_val = relaxation_stack_xy[ii][0] / 3600
+            y_val = relaxation_stack_xy[ii][1]
+            stack_x_all.append(x_val)
+            stack_y_all.append(y_val)
             
             # Limits.
             ## Use same axes for the (a) subplot.
@@ -4526,7 +4551,10 @@ def perform_stepped_manipulation_analysis(
             axs3[1].grid(True)
             
             # Log-ify subplot (a), and adjust the ticks to avoid two million log-decimals.
-            axs3[0].set_xscale('log', base=np.e) ## Set the log-basis for the log-x to equate to the natural logarithm.
+            ##axs3[0].set_xscale('log', base=np.e) ## Set the log-basis for the log-x to equate to the natural logarithm.
+            ## 2026-02-17 Me using base-e upset my academic seniors, so I have to change it back to log10, even though there is no real reason for nature to care about the number of digits on our hands haha
+            axs3[0].set_xscale('log')
+            
             '''major_ticks = [0.1, 1, 10, 100]
             axs3[0].set_xticks(major_ticks)
             axs3[0].xaxis.set_minor_locator(
@@ -4563,14 +4591,26 @@ def perform_stepped_manipulation_analysis(
             axs3[1].tick_params(axis='both', labelsize=26)
             
             # Set limits.
-            axs3[0].set_xlim(0.06, 230)
+            ##axs3[0].set_xlim(0.06, 230) # PD says there is too much whitespace in the lower left. I guess he has a point, so I suppose the first datapoints will have to start at x = 1 min then.
+            ##axs3[0].set_xlim(0.06, 230)
+            axs3[0].set_xlim(0.8, 230)
             axs3[1].set_xlim(-2.5, 112.5)
             axs3[0].set_ylim(-0.5, 9)
             axs3[1].set_ylim(-0.5, 9)
             
             # Legends!
-            axs3[0].legend(fontsize=24)
+            axs3[0].legend(fontsize=24, ncol=2)
             axs3[1].legend(fontsize=24)
+    
+    # Connect the scatter dots with a semi-transparent black line.
+    '''axs3[1].plot(
+        stack_x_all,
+        stack_y_all,
+        color       =  'black',
+        alpha       =   0.2,
+        linewidth   =   2,
+        zorder      =   0 # Draw line behind scatter dots.
+    )'''
     
     # Tight!
     plt.tight_layout()
@@ -5942,7 +5982,7 @@ def plot_ln2_data(
         # Legend setup for the second plot.
         ax3.legend(
             plot_handles,
-            [f"$G_0 = {G_0:.4f}$, $T_0 = {T_0:.1f}$" for G_0, T_0 in fit_results],
+            [f"$G_0 = {G_0:.4f}$, $T_0 = {T_0:.1f}$"+" K" for G_0, T_0 in fit_results],
             fontsize=26,
             loc='best',
             title="Fit to Simmon's model:\n"+r"$G(T) = G_0 \left(1 + \left(\frac{T}{T_0}\right)^2\right)$",
