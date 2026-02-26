@@ -180,21 +180,17 @@ def calculate_f01_from_RT_resistance(
     room_temperature_resistance,
     E_C_in_Hz,
     Delta_cold_eV,
-    difference_between_RT_and_cold_resistance = 1.1385,
+    difference_between_RT_and_cold_resistance = 1.1375,
     T = 0.010,
     verbose = True
     ):
     ''' Given a room temperature resistance, calculate the resulting f_01.
-        For difference_between_RT_and_cold_resistance, a value of 1.1385
-        means that a cold junction is 13.85 % more resistive than a room
-        temperature one. This number is the average of the two junctions
-        that were measured in Fig. 2.12 by A. Osman's thesis.
-        
-        The thesis is OF COURSE not uploaded to Chalmers ODR archive as of
-        2025-01-31, that would require somebody to actually know anything
-        about archiving practices and university rules at that department's
-        division. Lol, ngh. Find the thesis here:
-        https://research.chalmers.se/en/publication/543784
+        For difference_between_RT_and_cold_resistance, a value of 1.1375
+        means that a cold junction is 13.75 % more resistive than a room
+        temperature one. This number is was found in the work by
+        Christian Križan & Maurizio Toselli et al. "Electrical post-fabrication
+        tuning of aluminum Josephson junctions at room temperature"
+        https://arxiv.org/abs/2602.20002
         
         E_C is the transmon's charging energy.
         Delta_cold is the superconducting gap at millikelvin temperatures.
@@ -262,7 +258,7 @@ def calculate_RT_resistance_from_target_f01(
     target_f_01,
     E_C_in_Hz,
     Delta_cold_eV,
-    difference_between_RT_and_cold_resistance = 1.1385,
+    difference_between_RT_and_cold_resistance = 1.1375,
     T = 0.010,
     R_N_initial_guess = 15000,
     acceptable_frequency_offset = 100,
@@ -333,21 +329,17 @@ def calculate_f01_from_RT_resistance_and_anharmonicity(
     room_temperature_resistance,
     anharmonicity_Hz,
     Delta_cold_eV,
-    difference_between_RT_and_cold_resistance = 1.1385,
+    difference_between_RT_and_cold_resistance = 1.1375,
     T = 0.010,
     verbose = True
     ):
     ''' Given a room temperature resistance, calculate the resulting f_01.
-        For difference_between_RT_and_cold_resistance, a value of 1.1385
-        means that a cold junction is 13.85 % more resistive than a room
-        temperature one. This number is the average of the two junctions
-        that were measured in Fig. 2.12 by A. Osman's thesis.
-        
-        The thesis is OF COURSE not uploaded to Chalmers ODR archive as of
-        2025-01-31, that would require somebody to actually know anything
-        about archiving practices and university rules at that department's
-        division. Lol, ngh. Find the thesis here:
-        https://research.chalmers.se/en/publication/543784
+        For difference_between_RT_and_cold_resistance, a value of 1.1375
+        means that a cold junction is 13.75 % more resistive than a room
+        temperature one. This number is was found in the work by
+        Christian Križan & Maurizio Toselli et al. "Electrical post-fabrication
+        tuning of aluminum Josephson junctions at room temperature"
+        https://arxiv.org/abs/2602.20002
         
         E_C is the transmon's charging energy.
             Uniquely for this function, E_C is found through iteration
@@ -527,7 +519,7 @@ def fit_ambegaokar_baratoff_josephson_koch_to_resistance(
     measured_qubit_frequencies,
     E_C_in_Hz,
     Delta_cold_eV,
-    difference_between_RT_and_cold_resistance = 1.1385,
+    difference_between_RT_and_cold_resistance = 1.1375,
     T = 0.010,
     colourise = False,
     verbose = True
@@ -1505,7 +1497,7 @@ def plot_manipulation_plan(
     expected_resistance_relaxation = 1.0229,
     E_C_in_Hz = 195e6,
     Delta_cold_eV = 174.28e-6,
-    difference_between_RT_and_cold_resistance = 1.1385,
+    difference_between_RT_and_cold_resistance = 1.1375,
     T = 0.010,
     verbose = False
     ):
@@ -2904,7 +2896,7 @@ def calculate_delta_f01(
     final_resistance,
     E_C_in_Hz,
     Delta_cold_eV,
-    difference_between_RT_and_cold_resistance = 1.1385,
+    difference_between_RT_and_cold_resistance = 1.1375,
     T = 0.010,
     verbose = True
     ):
