@@ -198,6 +198,10 @@ def calculate_f01_from_RT_resistance(
           temperatures. For instance, 10 mK.
     '''
     
+    # Initial checks:
+    if T < 0:
+        raise ValueError("Halted! This model does not support negative temperature. T was: "+str(T)+" K.")
+    
     # Physical constants
     h = 6.62607015e-34       # Planck's constant [J/Hz]
     h_bar = h / (2 * np.pi)  # Reduced Planck's constant [J/Hz]
@@ -243,10 +247,9 @@ def calculate_f01_from_RT_resistance(
         print("E_J / E_C is: "+str(E_J/E_C))
     
     # Calculate f_01
-    '''## Koch 2007 equation regarding transmon f_01, precision to second order.
-    ## https://doi.org/10.1103/PhysRevB.77.180502
+    '''## Updated calculation from Koch 2007 equation regarding transmon f_01,
+    ## precision to second order. https://doi.org/10.1103/PhysRevB.77.180502
     second_order_correction_factor = -(E_C / 2) * (E_C / (8*E_J))'''
-    # Updated calculation from
     xi = np.sqrt(2 * E_C / E_J)
     second_order_correction_factor = (1 + (1/4)*xi + (21/128)*(xi**2))
     f_01 = (np.sqrt(8 * E_J * E_C) - E_C * second_order_correction_factor)/h
@@ -282,6 +285,10 @@ def calculate_RT_resistance_from_target_f01(
         R_N_initial_guess [Ω] is the initial resistance guess where we'll
         begin.
     '''
+    
+    # Initial checks:
+    if T < 0:
+        raise ValueError("Halted! This model does not support negative temperature. T was: "+str(T)+" K.")
     
     done = False
     r_rt = R_N_initial_guess
@@ -348,6 +355,10 @@ def calculate_f01_from_RT_resistance_and_anharmonicity(
         T is the temperature of operation, typically dilution fridge
           temperatures. For instance, 10 mK.
     '''
+    
+    # Initial checks:
+    if T < 0:
+        raise ValueError("Halted! This model does not support negative temperature. T was: "+str(T)+" K.")
     
     # Physical constants
     h = 6.62607015e-34       # Planck's constant [J/Hz]
@@ -1367,6 +1378,10 @@ def simulate_frequency_accuracy_of_model_from_RT_resistance(
     ##error_temperature_in_text = str(f"{(temperature_std_deviation / temperature_mean)*100:.3f}")
     error_temperature_in_text = str(f"{(temperature_std_deviation*1000):.1f}")
     
+    # Quick sanity check regarding temperature:
+    if temperature_with_error < 0:
+        raise ValueError("Halted! Detected negative temperature, which the model does not support. T was: "+str(temperature_with_error)+" K.")
+    
     # Given some known difference between room temperature resistance
     # and the normal state resistance at mK, get values.
     diff_rt_R_with_error = np.random.normal(difference_between_RT_and_cold_resistance_mean, difference_between_RT_and_cold_resistance_std_dev, no_junctions)
@@ -1382,7 +1397,7 @@ def simulate_frequency_accuracy_of_model_from_RT_resistance(
                 Delta_cold_eV = Delta_with_error_eV[jj],
                 difference_between_RT_and_cold_resistance = diff_rt_R_with_error[jj],
                 T = temperature_with_error[jj],
-                verbose = False
+                verbose = True
             )
         )
     
@@ -1403,6 +1418,10 @@ def simulate_frequency_accuracy_of_model_from_RT_resistance(
     doane_correction_factor_Ke = np.log2(1 + np.abs(third_moment_skewness_of_distribution)/sigma_g1)
     bins_calculated = int(np.ceil(1 + np.log2( no_entries ) + doane_correction_factor_Ke))
     
+    # Get values for the return, and return.
+    final_mean = np.mean(frequencies_calculated)
+    final_std = frequencies_calculated_standard_deviation
+    
     # Plot histogram of the calculated frequency values
     if plot:
         plt.figure(figsize=(18,6))
@@ -1411,12 +1430,12 @@ def simulate_frequency_accuracy_of_model_from_RT_resistance(
         
         # Create trace for the expected probability distribution
         x = np.linspace(
-            np.mean(frequencies_calculated) - float(num_sigmas_in_expected_pdf*frequencies_calculated_standard_deviation),
-            np.mean(frequencies_calculated) + float(num_sigmas_in_expected_pdf*frequencies_calculated_standard_deviation),
+            final_mean - float(num_sigmas_in_expected_pdf*frequencies_calculated_standard_deviation),
+            final_mean + float(num_sigmas_in_expected_pdf*frequencies_calculated_standard_deviation),
             100
         )
         pdf = (1 / (frequencies_calculated_standard_deviation * np.sqrt(2 * np.pi))) * \
-            np.exp(-0.5 * ((x - np.mean(frequencies_calculated)) / frequencies_calculated_standard_deviation) ** 2)
+            np.exp(-0.5 * ((x - final_mean) / frequencies_calculated_standard_deviation) ** 2)
         plt.plot(x, pdf, '-', color="#EE1C1C", label="Expected normal\ndistribution")
         
         # Labels and title
@@ -1425,17 +1444,19 @@ def simulate_frequency_accuracy_of_model_from_RT_resistance(
         plt.title("Distribution about frequency target:\n±"+str(resistance_measurement_error_std_deviation)+" Ω measurement error, ±"+str(E_C_error_std_deviation_in_Hz/1e6)+" MHz E_C,\n±"+str(error_Delta_in_text)+"% Δ, ±"+str(error_temperature_in_text)+" mK T, ±"+str(error_diff_R_in_text)+"% R vs R_T", fontsize=18)
         plt.tick_params(axis='both', labelsize=24)
         plt.legend(fontsize=26)
-        plt.xlim(2.5e9, 5.0e9)
+        
+        # Set limits.
+        half_span = 500e6 / 2
+        plt.xlim(final_mean - half_span,
+                 final_mean + half_span)
         plt.ylim(0, 1.25e-8)
+        
         plt.show()
     
     # Print some things.
-    print("Mean frequency is: "+str(np.mean(frequencies_calculated))+" [Hz]")
+    print("Mean frequency is: "+str(final_mean)+" [Hz]")
     print("Standard deviation for the frequency is: "+str(frequencies_calculated_standard_deviation)+" [Hz]")
     
-    # Get values for the return, and return.
-    final_mean = np.mean(frequencies_calculated)
-    final_std = frequencies_calculated_standard_deviation
     return (final_mean, final_std)
 
 def plot_trend_for_changing_superconducting_gap(
