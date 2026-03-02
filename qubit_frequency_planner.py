@@ -115,8 +115,48 @@ def calculate_cz20_cz02_iswap(
     # Return!
     return f_cz20, f_cz02, f_iswap
 
+def compute_min_spacing(interval_objects):
+    ''' Figures out the minimum spacing between 2 two-qubit-gate
+        bands considered.
+    '''
+    
+    # Catch bad input.
+    if len(interval_objects) < 2:
+        return None, None, []
+
+    # Sort by lower bound.
+    sorted_objs = sorted(
+        interval_objects,
+        key=lambda obj: obj["interval"][0]
+    )
+    
+    min_spacing = float("inf")
+    min_pair = None
+    overlapping_pairs = []
+
+    for i in range(len(sorted_objs) - 1):
+        obj1 = sorted_objs[i]
+        obj2 = sorted_objs[i + 1]
+
+        l1, h1 = obj1["interval"]
+        l2, h2 = obj2["interval"]
+
+        spacing = l2 - h1
+
+        # Track overlaps.
+        if spacing < 0:
+            overlapping_pairs.append((obj1, obj2))
+
+        # Track smallest spacing.
+        if spacing < min_spacing:
+            min_spacing = spacing
+            min_pair = (obj1, obj2)
+
+    return min_spacing, min_pair, overlapping_pairs
+
+
 def draw_frequency_crowding_7q(
-    savepath
+    savepath = ''
     ):
     ''' For a set of seven qubit resistances and their corresponding transmon
         anharmonicities, draw the resulting frequency crowding that occurs
@@ -157,9 +197,11 @@ def draw_frequency_crowding_7q(
         "Coupler3": [(3, 5), (3, 6), (5, 6)],  # q4q6, q4q7, q6q7
     }
 
-    # Storage dictionary
+    # Storage dictionaries and lists.
     gate_ranges = {}
-
+    all_intervals = []
+    
+    # Go through all combinations.
     for coupler_name, pairs in coupler_map.items():
         gate_ranges[coupler_name] = {}
 
@@ -180,13 +222,59 @@ def draw_frequency_crowding_7q(
             # Set pair name.
             pair_name = f"q{i+1}q{j+1}"
 
+            # Store intervals for analysis later. Include metadata, that is,
+            # which is the actual gate + between which qubits,
+            # that has this band?
+            all_intervals.append({
+                "interval": (cz20_low, cz20_high),
+                "gate": "CZ₂₀",
+                "pair": pair_name,
+                "coupler": coupler_name
+            })
+            all_intervals.append({
+                "interval": (cz02_low, cz02_high),
+                "gate": "CZ₀₂",
+                "pair": pair_name,
+                "coupler": coupler_name
+            })
+            all_intervals.append({
+                "interval": (iswap_low, iswap_high),
+                "gate": "iSWAP",
+                "pair": pair_name,
+                "coupler": coupler_name
+            })
+
             gate_ranges[coupler_name][pair_name] = {
                 "CZ₂₀": (cz20_low, cz20_high),
                 "CZ₀₂": (cz02_low, cz02_high),
                 "iSWAP": (iswap_low, iswap_high),
             }
     
-    # Plotting time.
+    # Is there spectral overlap? Then print this to the user.
+    min_spacing, min_pair, overlaps = compute_min_spacing(all_intervals)
+    if overlaps:
+        print("Overlaps detected!\n")
+        for obj1, obj2 in overlaps:
+            print(
+                f"{obj1['gate']} {obj1['pair']} ({obj1['coupler']}) "
+                f"overlaps with "
+                f"{obj2['gate']} {obj2['pair']} ({obj2['coupler']})"
+            )
+    else:
+        print("No spectral overlap detected.")
+    
+    # Check band spacing.
+    if min_pair is not None:
+        obj1, obj2 = min_pair
+        print("\nTightest spectral spacing occurs between:")
+        print(
+            f"{obj1['gate']} {obj1['pair']} on {obj1['coupler'].replace('Coupler', 'Coupler ')}"
+            "  and  "
+            f"{obj2['gate']} {obj2['pair']} on {obj2['coupler'].replace('Coupler', 'Coupler ')}."
+        )
+        print(f"Minimum spacing: {min_spacing/1e6:.3f} MHz")
+    
+    # Plotting time!
     plt.figure(figsize=(20.31, 8))
     plt.title("Expected CZ₂₀, CZ₀₂, and iSWAP frequency ranges", fontsize=33)
     plt.xlabel("Coupler frequency [MHz]", fontsize=33)
