@@ -1350,7 +1350,8 @@ def simulate_frequency_accuracy_of_model_from_RT_resistance(
     temperature_std_deviation,
     difference_between_RT_and_cold_resistance_mean,
     difference_between_RT_and_cold_resistance_std_dev,
-    plot = True
+    plot = True,
+    savepath = ''
     ):
     ''' Virtually manufactures no_junctions worth of junctions,
         and produces a distribution, showing what the frequency
@@ -1379,7 +1380,7 @@ def simulate_frequency_accuracy_of_model_from_RT_resistance(
     error_temperature_in_text = str(f"{(temperature_std_deviation*1000):.1f}")
     
     # Quick sanity check regarding temperature:
-    if temperature_with_error < 0:
+    if not np.all(temperature_with_error >= 0):
         raise ValueError("Halted! Detected negative temperature, which the model does not support. T was: "+str(temperature_with_error)+" K.")
     
     # Given some known difference between room temperature resistance
@@ -1397,7 +1398,7 @@ def simulate_frequency_accuracy_of_model_from_RT_resistance(
                 Delta_cold_eV = Delta_with_error_eV[jj],
                 difference_between_RT_and_cold_resistance = diff_rt_R_with_error[jj],
                 T = temperature_with_error[jj],
-                verbose = True
+                verbose = False
             )
         )
     
@@ -1424,8 +1425,8 @@ def simulate_frequency_accuracy_of_model_from_RT_resistance(
     
     # Plot histogram of the calculated frequency values
     if plot:
-        plt.figure(figsize=(18,6))
-        plt.hist(frequencies_calculated, bins=bins_calculated, density=True, alpha=0.6, color="#1C70EE", edgecolor='black', rwidth = 0.9)
+        plt.figure(figsize=(12.34,10))
+        plt.hist(frequencies_calculated, bins=bins_calculated, density=True, alpha=0.8, color="#C41CEE", edgecolor='black', rwidth = 0.9)
         num_sigmas_in_expected_pdf = 5
         
         # Create trace for the expected probability distribution
@@ -1440,8 +1441,10 @@ def simulate_frequency_accuracy_of_model_from_RT_resistance(
         
         # Labels and title
         plt.xlabel("Calculated frequencies [GHz]", fontsize=33)
-        plt.ylabel("Probability density", fontsize=33)
-        plt.title("Distribution about frequency target:\n±"+str(resistance_measurement_error_std_deviation)+" Ω measurement error, ±"+str(E_C_error_std_deviation_in_Hz/1e6)+" MHz E_C,\n±"+str(error_Delta_in_text)+"% Δ, ±"+str(error_temperature_in_text)+" mK T, ±"+str(error_diff_R_in_text)+"% R vs R_T", fontsize=18)
+        ##plt.ylabel(r"Probability density", fontsize=33)
+        plt.ylabel(r"Probability density $\times 10^{-8}$", fontsize=33)
+        ##plt.title("Distribution about frequency target:\n±"+str(resistance_measurement_error_std_deviation)+" Ω measurement error, ±"+str(E_C_error_std_deviation_in_Hz/1e6)+" MHz E_C,\n±"+str(error_Delta_in_text)+"% Δ, ±"+str(error_temperature_in_text)+" mK T, ±"+str(error_diff_R_in_text)+"% R vs R_T", fontsize=18)
+        plt.title("±"+str(resistance_measurement_error_std_deviation)+" Ω measurement error, ±"+str(E_C_error_std_deviation_in_Hz/1e6)+" MHz E_C,\n±"+str(error_Delta_in_text)+"% Δ, ±"+str(error_temperature_in_text)+" mK T, ±"+str(error_diff_R_in_text)+"% R vs R_T", fontsize=26)
         plt.tick_params(axis='both', labelsize=24)
         plt.legend(fontsize=26)
         
@@ -1451,6 +1454,14 @@ def simulate_frequency_accuracy_of_model_from_RT_resistance(
                  final_mean + half_span)
         plt.ylim(0, 1.25e-8)
         
+        # Use the tight layout.
+        plt.tight_layout()
+        
+        # Save plot?
+        if savepath != '':
+            plt.savefig(savepath, dpi=164, bbox_inches='tight')
+        
+        # Show shits.
         plt.show()
     
     # Print some things.
