@@ -90,6 +90,18 @@ def get_lowest_and_highest_frequencies_for_qubits(
             T = T,
             verbose = verbose
         )
+        
+        # Report nominal value?
+        if verbose:
+            nominal_frequency = calculate_f01_from_RT_resistance_and_anharmonicity(
+                room_temperature_resistance = R_nominal,
+                anharmonicity_Hz = list_of_anharmonicity_Hz[qubit_ii],
+                Delta_cold_eV = list_of_Delta_cold_eV[qubit_ii],
+                difference_between_RT_and_cold_resistance = difference_between_RT_and_cold_resistance,
+                T = T,
+                verbose = verbose
+            )
+            print("The nominal resistance for qubit "+str(qubit_ii)+" (0-indexed) resulted in a frequency of "+str(nominal_frequency/1e6)+" MHz.")
     
     # Report!
     return lowest_frequencies_Hz, highest_frequencies_Hz
@@ -166,7 +178,8 @@ def draw_frequency_crowding_7q(
     '''
     
     # Set parameter data.
-    R_list = [5275, 6000, 6475, 7200, 7800, 8375, 9000]
+    #R_list = [5275, 6000, 6475, 7200, 7800, 8375, 9000]
+    R_list = [6475, 7200, 7800, 8375, 9000, 6000, 5275]
     anharmonicity_list = [-280e6, -280e6, -280e6, -280e6, -280e6, -280e6, -280e6]
     Delta_list = [174.3e-6, 174.3e-6, 174.3e-6, 174.3e-6, 174.3e-6, 174.3e-6, 174.3e-6] # With a superconducting energy gap as found in Križan2026.
     fab_error_list = [2, 2, 2, 2, 2, 2, 2]  # In percent.
@@ -192,9 +205,16 @@ def draw_frequency_crowding_7q(
     ##                      // Christian Križan
     
     coupler_map = {
-        "Coupler1": [(0, 2), (0, 3), (2, 3)],  # q1q3, q1q4, q3q4
-        "Coupler2": [(1, 3), (1, 4), (3, 4)],  # q2q4, q2q5, q4q5
-        "Coupler3": [(3, 5), (3, 6), (5, 6)],  # q4q6, q4q7, q6q7
+        ##"Coupler1": [(0, 2), (0, 3), (2, 3)],  # q1q3, q1q4, q3q4
+        ##"Coupler2": [(1, 3), (1, 4), (3, 4)],  # q2q4, q2q5, q4q5
+        ##"Coupler3": [(3, 5), (3, 6), (5, 6)],  # q4q6, q4q7, q6q7
+        "Coupler1": [(0, 6), (1, 6), (0, 1)],
+        "Coupler2": [(1, 5), (2, 5), (1, 2)],
+        "Coupler3": [(1, 3), (1, 4), (3, 4)],
+        #"Coupler1": [(0, 1)],
+        #"Coupler2": [(0, 2)],
+        #"Coupler3": [(0, 3)],
+        #"Coupler4": [(0, 4)],
     }
 
     # Storage dictionaries and lists.
@@ -275,17 +295,18 @@ def draw_frequency_crowding_7q(
         print(f"Minimum spacing: {min_spacing/1e6:.3f} MHz")
     
     # Plotting time!
-    plt.figure(figsize=(20.31, 8))
+    plt.figure(figsize=(25.23, 8))
     plt.title("Expected CZ₂₀, CZ₀₂, and iSWAP frequency ranges", fontsize=33)
     plt.xlabel("Coupler frequency [MHz]", fontsize=33)
     plt.ylabel("Coupler", fontsize=33)
     plt.xlim(-10, 1410)
-
+    
     # Assign vertical positions automatically.
     coupler_positions = {
         "Coupler1": 0.1,
         "Coupler2": 0.3,
         "Coupler3": 0.5,
+        #"Coupler4": 0.7,
     }
     
     # Define colours.
@@ -335,7 +356,8 @@ def draw_frequency_crowding_7q(
                     s=label_text,
                     va="center",
                     ha="left",
-                    fontsize=16,
+                    #fontsize=16,
+                    fontsize=22,
                     color="black"
                 )
 
