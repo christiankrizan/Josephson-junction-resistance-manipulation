@@ -182,7 +182,8 @@ def draw_frequency_crowding_7q(
     R_list = [6475, 7200, 7800, 8375, 9000, 6000, 5275]
     anharmonicity_list = [-280e6, -280e6, -280e6, -280e6, -280e6, -280e6, -280e6]
     Delta_list = [174.3e-6, 174.3e-6, 174.3e-6, 174.3e-6, 174.3e-6, 174.3e-6, 174.3e-6] # With a superconducting energy gap as found in Križan2026.
-    fab_error_list = [2, 2, 2, 2, 2, 2, 2]  # In percent.
+    fab_error_list = [2, 2, 2, 2, 2, 2, 2]  # Units of percent.
+    #fab_error_list = [8.75, 8.75, 8.75, 8.75, 8.75, 8.75, 8.75]  # Units of percent.
     
     # Figure out what are the highest and lowest qubit frequency values
     # for the resistances and harmonicites as given above.
@@ -208,13 +209,13 @@ def draw_frequency_crowding_7q(
         ##"Coupler1": [(0, 2), (0, 3), (2, 3)],  # q1q3, q1q4, q3q4
         ##"Coupler2": [(1, 3), (1, 4), (3, 4)],  # q2q4, q2q5, q4q5
         ##"Coupler3": [(3, 5), (3, 6), (5, 6)],  # q4q6, q4q7, q6q7
-        "Coupler1": [(0, 6), (1, 6), (0, 1)],
-        "Coupler2": [(1, 5), (2, 5), (1, 2)],
-        "Coupler3": [(1, 3), (1, 4), (3, 4)],
-        #"Coupler1": [(0, 1)],
-        #"Coupler2": [(0, 2)],
-        #"Coupler3": [(0, 3)],
-        #"Coupler4": [(0, 4)],
+        #"Coupler1": [(0, 6), (1, 6), (0, 1)],
+        #"Coupler2": [(1, 5), (2, 5), (1, 2)],
+        #"Coupler3": [(1, 3), (1, 4), (3, 4)],
+        "Coupler1": [(0, 1)],
+        "Coupler2": [(0, 2)],
+        "Coupler3": [(0, 3)],
+        "Coupler4": [(0, 4)],
     }
 
     # Storage dictionaries and lists.
@@ -306,7 +307,7 @@ def draw_frequency_crowding_7q(
         "Coupler1": 0.1,
         "Coupler2": 0.3,
         "Coupler3": 0.5,
-        #"Coupler4": 0.7,
+        "Coupler4": 0.7,
     }
     
     # Define colours.
